@@ -1,49 +1,48 @@
-# Heroku Django Starter Template
+# User And Profiles
 
-An utterly fantastic project starter template for Django 2.0.
+## Problem Statement
+Scenario: You have two tables User and Profile. User can have multiple profiles. When user is created,
+there is a requirement to create two profiles named “Officer” and “Admin” automatically.
+Design and develop Restful webservice using Python Django framework which should perform
+following operations:
 
-## Features
+* Add New User (/addUser)
+* List Users (/listUsers)
+* Delete User (/deleteUser)
+* Update User (/updateUserDetails)
+* List Profiles for given user (/listProfiles/<user id>)
+* Display PDF (/show-pdf/{userid})
+    
+    
+## Expected output:
 
-- Production-ready configuration for Static Files, Database Settings, Gunicorn, etc.
-- Enhancements to Django's static file serving functionality via WhiteNoise.
-- Latest Python 3.6 runtime environment.
+* When user is created by calling ‘/addUser’ API. There should be corresponding profile gets
+created and profiles should be viewable with the help of ‘/listProfiles’ APIs. Try to use best
+Django design practices.
+* Output should be in JSON API format.
+* Non-admin user would only be able to execute /listUsers action.
+* In case of exception, it should show customized json with error.
+* PDF should display in Base64 json format all attributes of user.
+* Add Request Rate limiting for the api’s you think need to be limited for 2 requests per minute
+and 5 requests per day
+* Add unit tests for code coverage
+Note:
+1. It should be accessing using http://localhost:8000/api/ following by API name.
 
-## How to Use
+# How to Deploy to Heroku
+* Clone this Repository on Github.
+* Create a new application on Heroku.
+* Provision a PostgreSQL Database on Heroku.
+* Add the following configuration variable under settings. 
+    * DISABLE_COLLECTSTATIC=1
+    * DJANGO_SETTINGS_MODULE=userprofile.settings.production
 
-To use this project, follow these steps:
+* Save these settings. 
+* Connect the Heroku Deployment Mechanism with Github. Once connected, start the deployment. 
 
-1. Create your working environment.
-2. Install Django (`$ pipenv install django`)
-3. Create a new project using this template
+* Create a new SuperUser using the bash console on Heroku. Remember to exit correctly from the console. 
 
-## Creating Your Project
-
-Using this template to create a new Django app is easy::
-
-    $ django-admin.py startproject --template=https://github.com/heroku/heroku-django-template/archive/master.zip --name=Procfile helloworld
-
-(If this doesn't work on windows, replace `django-admin.py` with `django-admin`)
-
-You can replace ``helloworld`` with your desired project name.
-
-## Deployment to Heroku
-
-    $ git init
-    $ git add -A
-    $ git commit -m "Initial commit"
-
-    $ heroku create
-    $ git push heroku master
-
-    $ heroku run python manage.py migrate
-
-See also, a [ready-made application](https://github.com/heroku/python-getting-started), ready to deploy.
+## Documentation of API EndPoints
+https://documenter.getpostman.com/view/8652168/SVtPWq1h?version=latest
 
 
-## License: MIT
-
-## Further Reading
-
-- [Gunicorn](https://warehouse.python.org/project/gunicorn/)
-- [WhiteNoise](https://warehouse.python.org/project/whitenoise/)
-- [dj-database-url](https://warehouse.python.org/project/dj-database-url/)
