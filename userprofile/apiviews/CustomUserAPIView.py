@@ -22,11 +22,9 @@ from rest_framework.response import Response
 
 from rest_framework.status import * 
 
-class CustomUserAPIView(generics.ListAPIView):
-	serializer_class = CustomUserSerializer
-	def get_queryset(self):		
-		logged_in_user = self.request.user
-		return logged_in_user
+from rest_framework.exceptions import NotFound
+
+
 		
 class UserCreateAPIView(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
@@ -70,7 +68,10 @@ class GeneratePDFView(APIView):
 	permission_classes = [IsAdminUser]
 
 	def get(self, request, **kwargs):
-		data=CustomUser.objects.all()
+		userID=kwargs['pk']
+		data=CustomUser.objects.filter(id=userID)
+		if(data.count()==0):
+			raise NotFound
 		context={"data":data}
 		errorcode=HTTP_200_OK
 		pdf = render_to_pdf('template_pdf.html', context)
