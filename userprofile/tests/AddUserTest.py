@@ -15,9 +15,6 @@ class AddUserTest(APITestCase):
         self.user.set_password("password1")
         self.user.save()
 
-    def test_user_creation_without_login(self):
-    	
-        # create a standard User
         self.client.login(username='user1@test.com',password='password1')        
         addresponse = self.client.post(reverse('adduser'), {
             'username': 'bharti',
@@ -30,10 +27,15 @@ class AddUserTest(APITestCase):
             self.newuserid=addresponse.data['id']
         
         self.client.logout() # Logout from Admin Login 
+
+    def test_user_creation_without_login(self):
+    	
+        # create a standard User
+        
         addresponse = self.client.post(reverse('adduser'), {
-            'username': 'bharti',
-            'password':'newpassword',
-            'email':'bharti@gmail.com'
+            'username': 'nilesh',
+            'password':'nileshspwd',
+            'email':'nilesh@gmail.com'
         })
 
         
@@ -68,17 +70,15 @@ class AddUserTest(APITestCase):
         self.client.login(username='user1@test.com',password='password1')
         
         addresponse = self.client.post(reverse('adduser'), {
-            'username': 'bharti',
-            'password':'newpassword',
-            'email':'bharti@gmail.com'
+            'username': 'nilesh',
+            'password':'nileshspwd',
+            'email':'nilesh@gmail.com'
         })
         #print(addresponse.data)
         self.assertEqual(201, addresponse.status_code)
-        if (addresponse.status_code==201):
-            self.newuserid=addresponse.data['id']
-
+        
          # assert new User was added
-        self.assertEqual(CustomUser.objects.count(), 2)
+        self.assertEqual(CustomUser.objects.count(), 3)
         myuser=CustomUser.objects.get(id=self.newuserid)
         #print(myuser.username)
 
@@ -110,23 +110,6 @@ class AddUserTest(APITestCase):
         self.assertEqual(204, response.status_code)
 
     def test_with_standard_login(self):
-
-        # create a standard User
-        self.client.login(username='user1@test.com',password='password1')
-        
-        addresponse = self.client.post(reverse('adduser'), {
-            'username': 'bharti',
-            'password':'newpassword',
-            'email':'bharti@gmail.com'
-        })
-        self.assertEqual(201, addresponse.status_code)
-
-        if (addresponse.status_code==201):
-            self.newuserid=addresponse.data['id']
-        #print(addresponse.data['id'])
-        self.client.logout() # Logout from Admin Login
-
-       
 
         self.client.login(username='bharti',password='newpassword')
         
@@ -160,7 +143,7 @@ class AddUserTest(APITestCase):
         response = self.client.get(reverse('generatepdf', kwargs={'pk':self.newuserid}))
         self.assertEqual(403, response.status_code)
 
-        #Check if User can generate PDF
+        #Check if User can delete another user
         response = self.client.delete(reverse('deleteuser', kwargs={'pk':self.newuserid}))
         self.assertEqual(403, response.status_code)
 
