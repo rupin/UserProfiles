@@ -1,72 +1,170 @@
-# from django.shortcuts import reverse
+from django.shortcuts import reverse
 
-# from rest_framework.test import APITestCase
+from rest_framework.test import APITestCase
 
-# from userprofile.models.CustomUserModel import CustomUser
+from userprofile.models.CustomUserModel import CustomUser
+from userprofile.models.UserProfileModel import UserProfile
+from rest_framework.test import APIClient
 
 
-# class AddUserTest(APITestCase):
-#     def setUp(self):
-#         # create movie
-#         self.user = CustomUser(first_name='Rupin', last_name='chheda', username='rupin', password='twinklestar', is_superuser=True, is_staff=True, is_active=True)
-#         self.user.save()
+class AddUserTest(APITestCase):
+    def setUp(self):
+        # create User
+        self.client = APIClient()
+        self.user = CustomUser.objects.create_user(email="user1@test.com", username='user1@test.com',is_staff=True)
+        self.user.set_password("password1")
+        self.user.save()
 
-#     def test_add_user_creation(self):
-#         print(reverse('adduser'))
-#         response = self.client.post(reverse('adduser'), {
-#             'username': 'bharti',
-#             'password':'newpassword',
-#             'email':'bharti@gmail.com'
-#         })
+    def test_user_creation_without_login(self):
+    	
+        # create a standard User
+        self.client.login(username='user1@test.com',password='password1')        
+        addresponse = self.client.post(reverse('adduser'), {
+            'username': 'bharti',
+            'password':'newpassword',
+            'email':'bharti@gmail.com'
+        })
+        self.assertEqual(201, addresponse.status_code)
+
+        if (addresponse.status_code==201):
+            self.newuserid=addresponse.data['id']
+        
+        self.client.logout() # Logout from Admin Login 
+        addresponse = self.client.post(reverse('adduser'), {
+            'username': 'bharti',
+            'password':'newpassword',
+            'email':'bharti@gmail.com'
+        })
+
+        
+        # Assert 401 because the user is not logged in
+        self.assertEqual(401, addresponse.status_code)  
+
+        response = self.client.patch(reverse('updateUser', kwargs={'pk':self.newuserid}), {
+            'first_name': 'Bharti',
+            'last_name':'Chheda',
+            
+        })
+        self.assertEqual(401, response.status_code)     
+
+        response = self.client.get(reverse('listProfile', kwargs={'userid':self.newuserid}))
+        #print(response.data)
+        self.assertEqual(401, response.status_code) 
+
+        # Check if standard Login can list Users
+        response = self.client.get(reverse('listusers'))
+        self.assertEqual(401, response.status_code)
+
+        response = self.client.get(reverse('generatepdf', kwargs={'pk':self.newuserid}))
+        self.assertEqual(401, response.status_code)
+        
+        #Check if User can delete users
+        response = self.client.delete(reverse('deleteuser', kwargs={'pk':self.newuserid}))
+        self.assertEqual(401, response.status_code)
+
+    def test_with_admin_login(self):
+
+
+        self.client.login(username='user1@test.com',password='password1')
+        
+        addresponse = self.client.post(reverse('adduser'), {
+            'username': 'bharti',
+            'password':'newpassword',
+            'email':'bharti@gmail.com'
+        })
+        #print(addresponse.data)
+        self.assertEqual(201, addresponse.status_code)
+        if (addresponse.status_code==201):
+            self.newuserid=addresponse.data['id']
+
+         # assert new User was added
+        self.assertEqual(CustomUser.objects.count(), 2)
+        myuser=CustomUser.objects.get(id=self.newuserid)
+        #print(myuser.username)
+
+        #assert if profiles were created
+        self.assertEqual(UserProfile.objects.filter(user=myuser).count(), 2)
+
+        updateresponse = self.client.patch(reverse('updateUser', kwargs={'pk':self.newuserid}), {
+            'first_name': 'Bharti',
+            'last_name':'Chheda',
+            
+        })
+        #print(updateresponse)
+        self.assertEqual(CustomUser.objects.filter(id=self.newuserid, first_name='Bharti', last_name='Chheda').count(), 1)
+
+
+        response = self.client.get(reverse('listProfile', kwargs={'userid':self.newuserid}))
+        #print(response.data)
+        self.assertEqual(200, response.status_code)
+
+        # Check if standard Login can list Users
+        response = self.client.get(reverse('listusers'))
+        self.assertEqual(200, response.status_code)
+
+        response = self.client.get(reverse('generatepdf', kwargs={'pk':self.newuserid}))
+        self.assertEqual(200, response.status_code)
+
+        #Check if User can delete users
+        response = self.client.delete(reverse('deleteuser', kwargs={'pk':self.newuserid}))
+        self.assertEqual(204, response.status_code)
+
+    def test_with_standard_login(self):
+
+        # create a standard User
+        self.client.login(username='user1@test.com',password='password1')
+        
+        addresponse = self.client.post(reverse('adduser'), {
+            'username': 'bharti',
+            'password':'newpassword',
+            'email':'bharti@gmail.com'
+        })
+        self.assertEqual(201, addresponse.status_code)
+
+        if (addresponse.status_code==201):
+            self.newuserid=addresponse.data['id']
+        #print(addresponse.data['id'])
+        self.client.logout() # Logout from Admin Login
 
        
 
-#         # Assert 401 because the user is not logged in
-#         self.assertEqual(401, response.status_code)
+        self.client.login(username='bharti',password='newpassword')
+        
+        response = self.client.post(reverse('adduser'), {
+            'username': 'nilesh',
+            'password':'newpassword',
+            'email':'nilesh@gmail.com'
+        })
+        
+        self.assertEqual(403, response.status_code)
+
+        #Check if Standard Profile can update users
+        response = self.client.patch(reverse('updateUser', kwargs={'pk':self.newuserid}), {
+            'first_name': 'Bharti',
+            'last_name':'Chheda',
+            
+        })
+        self.assertEqual(403, response.status_code)
 
 
+        # Check if standard Login can list profiles
+        response = self.client.get(reverse('listProfile', kwargs={'userid':self.newuserid}))
+        self.assertEqual(403, response.status_code)
+
+
+        # Check if standard Login can list Users. They can
+        response = self.client.get(reverse('listusers'))        
+        self.assertEqual(200, response.status_code)
+
+        #Check if User can generate PDF
+        response = self.client.get(reverse('generatepdf', kwargs={'pk':self.newuserid}))
+        self.assertEqual(403, response.status_code)
+
+        #Check if User can generate PDF
+        response = self.client.delete(reverse('deleteuser', kwargs={'pk':self.newuserid}))
+        self.assertEqual(403, response.status_code)
 
         
-#         #get Authentication token
-#         self.client.headers.update({"Content-Type":"application/x-www-form-urlencoded"})
-#         response = self.client.post('/api/auth/login/', {
-#             'username': 'rupin',
-#             'password':'twinklestar',
-            
-#         })
-
-#         self.assertEqual(200, response.status_code)
-#         print(response)
 
 
-
-#         #self.client.headers.update({'Authorization': 'Token '+})
-
-
-
-#         response = self.client.post(reverse('adduser'), {
-#             'username': 'bharti',
-#             'password':'newpassword',
-#             'email':'bharti@gmail.com'
-#         })
-
-#          # assert new movie was added
-#         self.assertEqual(CustomUser.objects.count(), 2)
-
-#     # def test_getting_movies(self):
-#     #     response = self.client.get(reverse('movies'), format="json")
-#     #     self.assertEqual(len(response.data), 1)
-
-#     # def test_updating_movie(self):
-#     #     response = self.client.put(reverse('detail', kwargs={'pk': 1}), {
-#     #         'name': 'The Space Between Us updated',
-#     #         'year_of_release': 2017
-#     #     }, format="json")
-
-#     #     # check info returned has the update
-#     #     self.assertEqual('The Space Between Us updated', response.data['name'])
-
-#     # def test_deleting_movie(self):
-#     #     response = self.client.delete(reverse('detail', kwargs={'pk': 1}))
-
-#     #     self.assertEqual(204, response.status_code)
+    
