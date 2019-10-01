@@ -21,7 +21,7 @@ from userprofile.apiviews.UserProfileAPIViews import *
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/auth/', include('rest_auth.urls')),
-    path('api/addUser/', UserCreateAPIView.as_view()),
+    path('api/addUser/', UserCreateAPIView.as_view(), name='adduser'),
     path('api/listUsers/', ListUsersAPIView.as_view()),
     path('api/deleteUser/<int:pk>/', deleteUserAPIView.as_view()),
     path('api/updateUserDetails/<int:pk>/', UpdateUserAPIView.as_view()),

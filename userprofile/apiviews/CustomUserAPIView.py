@@ -23,6 +23,7 @@ from rest_framework.response import Response
 from rest_framework.status import * 
 
 from rest_framework.exceptions import NotFound
+from rest_framework.throttling import UserRateThrottle
 
 
 		
@@ -30,6 +31,7 @@ class UserCreateAPIView(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserCreateSerializer
     permission_classes = [IsAdminUser]
+    throttle_classes = [UserRateThrottle]
 
 class ListUsersAPIView(generics.ListAPIView):
     queryset = CustomUser.objects.filter(is_active=True)
@@ -39,6 +41,7 @@ class ListUsersAPIView(generics.ListAPIView):
 class deleteUserAPIView(mixins.UpdateModelMixin, mixins.DestroyModelMixin,generics.GenericAPIView):
 	serializer_class = CustomUserDeleteSerializer
 	permission_classes = [IsAdminUser]
+	throttle_classes = [UserRateThrottle]
 
 	def get_queryset(self):        
 		return CustomUser.objects.all()	
@@ -66,6 +69,7 @@ class UpdateUserAPIView(generics.UpdateAPIView):
 class GeneratePDFView(APIView):
 	serializer_class=PDFSerializer
 	permission_classes = [IsAdminUser]
+	throttle_classes = [UserRateThrottle]
 
 	def get(self, request, **kwargs):
 		userID=kwargs['pk']
