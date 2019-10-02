@@ -79,11 +79,11 @@ class AddUserTest(APITestCase):
         
          # assert new User was added
         self.assertEqual(CustomUser.objects.count(), 3)
-        myuser=CustomUser.objects.get(id=self.newuserid)
-        #print(myuser.username)
+        
+       
 
         #assert if profiles were created
-        self.assertEqual(UserProfile.objects.filter(user=myuser).count(), 2)
+        self.assertEqual(UserProfile.objects.all().count(), 4)
 
         updateresponse = self.client.patch(reverse('updateUser', kwargs={'pk':self.newuserid}), {
             'first_name': 'Bharti',
@@ -91,7 +91,10 @@ class AddUserTest(APITestCase):
             
         })
         #print(updateresponse)
-        self.assertEqual(CustomUser.objects.filter(id=self.newuserid, first_name='Bharti', last_name='Chheda').count(), 1)
+        addedUserQS=CustomUser.objects.filter(id=self.newuserid,
+                                             first_name='Bharti',
+                                             last_name='Chheda')
+        self.assertEqual(addedUserQS.count(), 1)
 
 
         response = self.client.get(reverse('listProfile', kwargs={'userid':self.newuserid}))
